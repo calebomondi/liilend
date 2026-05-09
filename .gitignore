@@ -1,0 +1,30 @@
+.anchor
+.DS_Store
+target
+**/*.rs.bk
+node_modules
+test-ledger
+.yarn
+
+# Next.js
+.next
+out
+
+# Environment files
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode
+.idea
+*.swp
+*.swo
+
+# Build artifacts
+backend/dist
+app/tsconfig.tsbuildinfo
+app/next-env.d.ts
+
+# Solana keypairs (never commit)
+programs/**/*-keypair.json

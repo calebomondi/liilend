@@ -1,0 +1,25 @@
+[toolchain]
+anchor_version = "0.32.1"
+
+[features]
+seeds = false
+skip-lint = false
+
+[programs.devnet]
+liilend = "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+
+[programs.mainnet]
+liilend = "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+
+[programs.localnet]
+liilend = "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+
+[provider]
+cluster = "localnet"
+wallet = "~/.config/solana/id.json"
+
+[test]
+startup_wait = 15000
+
+[scripts]
+deploy-devnet = "anchor build --program-name liilend && anchor deploy --program-name liilend --provider.cluster devnet"
