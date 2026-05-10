@@ -52,17 +52,6 @@ export const SUPPORTED_ASSETS: AssetConfig[] = [
     liquidationPenalty: 0,
   },
   {
-    symbol: "JitoSOL",
-    name: "Jito Staked SOL",
-    mint: "H6khZJNhsAj3RNPrqUbVsYZUd2HFxeAQPrTXokuH57PZ",
-    decimals: 9,
-    logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/J1toso1uCk3RLmjorhTtrVwY9HJ7X8V9yYac6Y7kGCPn/logo.png",
-    priceFeed: "7LwM3FQ4KvSfakMRscKDN6FjYFyFJ3MgjPmSm3KeCqKJ",
-    ltv: 0.7,
-    liquidationThreshold: 0.75,
-    liquidationPenalty: 0.05,
-  },
-  {
     symbol: "ETH",
     name: "Ethereum (Wormhole)",
     mint: "2b8PYsqmHcCHqM8JzvSf4CPuRxvZzaCbPx9PuENYQ9vB",
@@ -84,24 +73,11 @@ export const SUPPORTED_ASSETS: AssetConfig[] = [
     liquidationThreshold: 0.75,
     liquidationPenalty: 0.05,
   },
-  {
-    symbol: "USDT",
-    name: "Tether USD",
-    mint: "FHRiYWEh6Uzr8oc2i8TC29CVRTxYhkRkuSrmuFb67hjX",
-    decimals: 6,
-    logo: "https://raw.githubusercontent.com/solana-labs/token-list/main/assets/mainnet/Es9vMFrzaCERmJfrF4H2FYD4KCoNkY11McCe8BenwNYB/logo.png",
-    priceFeed: "Dpw1EAVrSB1ibY1AStoA9C2yKF8F5wJNtBy2jVfXNU8V",
-    ltv: 0,
-    liquidationThreshold: 0.01,
-    liquidationPenalty: 0,
-  },
 ];
 
 export const MOCK_PRICES: Record<string, number> = {
   SOL: 142.50,
   USDC: 1.0,
-  JitoSOL: 156.20,
   ETH: 3200.0,
   BTC: 65000.0,
-  USDT: 1.0,
 };
