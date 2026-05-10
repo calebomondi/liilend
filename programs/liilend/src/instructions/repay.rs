@@ -73,7 +73,7 @@ pub fn handle_repay(ctx: Context<RepayDebt>, amount: u64) -> Result<()> {
     require!(amount <= debt_amount, LiiLendError::RepaymentExceedsDebt);
 
     let repay_shares = if debt_amount > 0 {
-        (amount as u128 * global_debt_shares) / (debt_amount as u128)
+        (amount as u128 * borrow_position.debt_shares) / (debt_amount as u128)
     } else {
         0
     };
