@@ -180,11 +180,11 @@ export default function PortfolioPage() {
   }, 0);
 
   const totalBorrowedUsd = borrowPositions.reduce((sum, b) => {
-    if (!b.vault) return sum;
     const ds = toBigInt(b.debtShares);
-    const ts = toBigInt(b.vault.totalShares);
-    const tv = toBigInt(b.vault.totalValue);
-    const amount = sharesToAmount(ds, ts, tv);
+    const gds = toBigInt(protocolState?.globalDebtShares || 0n);
+    const tbv = toBigInt(protocolState?.totalBorrowsUsd || 0n);
+    if (gds === 0n) return sum;
+    const amount = sharesToAmount(ds, gds, tbv);
     return sum + baseUnitsToUsd(amount, b.decimals, 1);
   }, 0);
 
@@ -210,20 +210,20 @@ export default function PortfolioPage() {
 
       let ps: any;
       try { ps = await acc.protocolState.fetch(psPda); } catch { toast.error("Protocol not found", { id: tid }); setTxPending(false); return; }
+      if (!ps) { toast.error("Failed to load protocol state", { id: tid }); setTxPending(false); return; }
 
       const ds = toBigInt(bp.debtShares);
       const gds = toBigInt(ps.globalDebtShares);
       const tbv = toBigInt(ps.totalBorrowsUsd);
       const debtAmount = sharesToAmount(ds, gds, tbv);
 
-      // Clamp repay amount to debt
-      const repayAmount = customAmountUsdc != null
-        ? customAmountUsdc > debtAmount ? debtAmount : customAmountUsdc
-        : debtAmount;
+      if (debtAmount === 0n) { toast.error("No debt to repay", { id: tid }); setTxPending(false); return; }
 
-      if (repayAmount === 0n) { toast.error("No debt to repay", { id: tid }); setTxPending(false); return; }
+      const repayAmount = customAmountUsdc != null && customAmountUsdc <= debtAmount && customAmountUsdc > 0n
+        ? customAmountUsdc : debtAmount;
 
-      // Ensure user ATA exists
+      if (repayAmount === 0n) { toast.error("Repay amount is zero", { id: tid }); setTxPending(false); return; }
+
       const ataInfo = await conn.getAccountInfo(userAta);
       if (!ataInfo) {
         const tx = new Transaction().add(
@@ -234,7 +234,6 @@ export default function PortfolioPage() {
       }
 
       if (isFiat) {
-        // Fiat repay: simulate fiat on-ramp, minting the exact USDC amount
         toast.loading(`On-ramping ${displayFiat} via Transak...`, { id: tid });
         await new Promise(r => setTimeout(r, 2000));
         toast.loading(`Exchanging via Stables → USDC...`, { id: tid });
@@ -242,11 +241,11 @@ export default function PortfolioPage() {
         toast.success(`Minted ${Number(repayAmount) / 1e6} USDC from fiat!`, { id: tid });
         await new Promise(r => setTimeout(r, 500));
       } else {
-        // USDC repay: deduct from user's wallet
         const balInfo = await conn.getTokenAccountBalance(userAta).catch(() => ({ value: { amount: "0" } }));
         const userBal = BigInt(balInfo.value.amount);
         if (userBal < repayAmount) {
-          toast.error(`Only ${Number(userBal) / 1e6} USDC in wallet — need ${Number(repayAmount) / 1e6}`, { id: tid });
+          const shortfall = Number(repayAmount - userBal) / 1e6;
+          toast.error(`Need ${Number(repayAmount) / 1e6} USDC — only ${Number(userBal) / 1e6} in wallet. Short ${shortfall.toFixed(2)} USDC`, { id: tid });
           setTxPending(false);
           return;
         }
@@ -446,11 +445,13 @@ export default function PortfolioPage() {
               <div className="space-y-4">
                 {fiatPerBorrow.map((b) => {
                   const form = getForm(b.mint.toBase58());
-                  const debtAmtUsdc = sharesToAmount(
-                    toBigInt(b.debtShares),
-                    toBigInt(protocolState?.globalDebtShares || 0),
-                    toBigInt(protocolState?.totalBorrowsUsd || 0),
-                  );
+                  const debtAmtUsdc = protocolState
+                    ? sharesToAmount(
+                        toBigInt(b.debtShares),
+                        toBigInt(protocolState.globalDebtShares),
+                        toBigInt(protocolState.totalBorrowsUsd),
+                      )
+                    : 0n;
                   const enterAmtBig = form.amount
                     ? BigInt(Math.round(parseFloat(form.amount) * 1e6))
                     : 0n;
