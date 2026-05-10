@@ -7,7 +7,7 @@ import Link from "next/link";
 import { Connection, PublicKey } from "@solana/web3.js";
 import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { SUPPORTED_ASSETS, MOCK_PRICES, RPC_ENDPOINT } from "@/utils/constants";
-import { deriveProtocolStatePDA } from "@/lib/protocol";
+import { deriveProtocolStatePDA, getVaultAccount } from "@/lib/protocol";
 import { LIILEND_IDL } from "@/lib/idl";
 
 function toBigInt(val: any): bigint {
@@ -71,21 +71,34 @@ export default function HomePage() {
 
     const fetchData = async () => {
       try {
-        const [psPda] = deriveProtocolStatePDA();
-        const ps = await acc.protocolState.fetch(psPda);
+        let totalSupplyUsd = 0;
+        let totalBorrowedUsd = 0;
+        let activeLoansCount = 0;
 
-        const totalSupplyUsd = Number(toBigInt(ps.totalDepositsUsd)) / 1e6 || 0;
-        const totalBorrowedUsd = Number(toBigInt(ps.totalBorrowsUsd)) / 1e6 || 0;
+        for (const asset of SUPPORTED_ASSETS) {
+          try {
+            const vault = await getVaultAccount(prog as any, new PublicKey(asset.mint));
+            if (vault) {
+              const vaultTotalValue = Number(toBigInt(vault.totalValue));
+              totalSupplyUsd += vaultTotalValue * (MOCK_PRICES[asset.symbol] || 0) / (10 ** asset.decimals);
+            }
+          } catch {}
+        }
 
-        let activeLoans = 0;
+        try {
+          const [psPda] = deriveProtocolStatePDA();
+          const ps = await acc.protocolState.fetch(psPda);
+          totalBorrowedUsd = Number(toBigInt(ps.totalBorrowsUsd)) / 1e6 || 0;
+        } catch {}
+
         try {
           const allBorrows = await acc.borrowPosition.all();
-          activeLoans = allBorrows.length;
+          activeLoansCount = allBorrows.length;
         } catch {}
 
         setStats({
           totalSupply: totalSupplyUsd,
-          activeLoans,
+          activeLoans: activeLoansCount,
           utilizationRate: totalBorrowedUsd > 0 && totalSupplyUsd > 0
             ? (totalBorrowedUsd / totalSupplyUsd) * 100
             : 0,
