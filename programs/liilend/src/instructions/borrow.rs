@@ -4,6 +4,7 @@ use crate::state::*;
 use crate::errors::LiiLendError;
 use crate::utils::math::*;
 use crate::utils::share_math::amount_to_debt_shares;
+use crate::cpi::dispatch_borrow;
 
 #[derive(Accounts)]
 pub struct BorrowAsset<'info> {
@@ -63,9 +64,10 @@ pub fn handle_borrow(ctx: Context<BorrowAsset>, amount: u64) -> Result<()> {
     require!(amount > 0, LiiLendError::ZeroAmount);
     require!(!ctx.accounts.protocol_state.paused, LiiLendError::ProtocolPaused);
 
-    let vault_info = &ctx.accounts.vault;
-    let vault_total = vault_info.total_value;
+    let vault_total = ctx.accounts.vault.total_value;
     let vault_bump = ctx.accounts.vault.bump;
+    let borrow_mint_key = ctx.accounts.borrow_mint.key();
+
     require!(
         vault_total >= amount,
         LiiLendError::InsufficientLiquidity
@@ -86,14 +88,13 @@ pub fn handle_borrow(ctx: Context<BorrowAsset>, amount: u64) -> Result<()> {
     let borrow_position = &mut ctx.accounts.borrow_position;
     if borrow_position.owner == Pubkey::default() {
         borrow_position.owner = ctx.accounts.authority.key();
-        borrow_position.borrow_mint = ctx.accounts.borrow_mint.key();
+        borrow_position.borrow_mint = borrow_mint_key;
         borrow_position.borrow_ts = Clock::get()?.unix_timestamp;
         borrow_position.bump = ctx.bumps.borrow_position;
     }
     borrow_position.debt_shares = borrow_position.debt_shares.saturating_add(debt_shares);
     borrow_position.last_accrual_ts = Clock::get()?.unix_timestamp;
 
-    let borrow_mint_key = ctx.accounts.borrow_mint.key();
     let seeds = &[VAULT_SEED, borrow_mint_key.as_ref(), &[vault_bump]];
     let signer_seeds = &[&seeds[..]];
 
@@ -110,6 +111,16 @@ pub fn handle_borrow(ctx: Context<BorrowAsset>, amount: u64) -> Result<()> {
         amount,
     )?;
 
+    if !ctx.remaining_accounts.is_empty() {
+        dispatch_borrow(
+            amount,
+            &ctx.accounts.vault,
+            vault_bump,
+            &borrow_mint_key,
+            ctx.remaining_accounts,
+        )?;
+    }
+
     let vault = &mut ctx.accounts.vault;
     vault.total_value = vault.total_value.saturating_sub(amount);
 
@@ -119,7 +130,7 @@ pub fn handle_borrow(ctx: Context<BorrowAsset>, amount: u64) -> Result<()> {
 
     emit!(BorrowEvent {
         user: ctx.accounts.authority.key(),
-        asset: ctx.accounts.borrow_mint.key(),
+        asset: borrow_mint_key,
         amount,
         debt_shares,
     });

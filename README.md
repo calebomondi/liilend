@@ -12,6 +12,7 @@ LiiLend is a crypto-collateralized borrowing platform focused on Africa and emer
 | Frontend (Next.js 15) | Builds and runs |
 | Backend (Express) | Running with all services |
 | Integration Tests | 5/5 operations passing |
+| CPI Unit Tests | 22/22 passing |
 | Supabase (PostgreSQL) | Schema applied, connected |
 
 ## Architecture
@@ -126,8 +127,9 @@ liilend/
 │       │   ├── treasury_ops.rs
 │       │   └── admin.rs
 │       ├── cpi/                # CPI integration adapters
-│       │   ├── marginfi_adapter.rs
-│       │   └── save_adapter.rs
+│       │   ├── mod.rs          # Dispatch routing by protocol
+│       │   ├── marginfi_adapter.rs  # marginfi v2 CPI (real invoke_signed)
+│       │   └── save_adapter.rs      # Save Finance CPI (real invoke_signed)
 │       └── utils/              # Math & accounting helpers
 │           ├── math.rs
 │           ├── safe_math.rs
@@ -181,6 +183,27 @@ liilend/
 ## Smart Contract
 
 The LiiLend Anchor program manages a pooled-vault lending protocol with 13 instructions.
+
+### CPI Integration (marginfi v2 + Save Finance)
+
+Vaults can be configured with a `ProtocolIntegration` (MarginFi or SaveFinance). When `ctx.remaining_accounts` is non-empty, the deposit/withdraw/borrow/repay handlers dispatch a real `invoke_signed` CPI call to the upstream protocol after token transfers. The vault PDA signs as the upstream protocol's authority.
+
+**Account layout in `remaining_accounts`:**
+
+| Index | Role |
+|-------|------|
+| `[0]` | Vault authority PDA (signer) |
+| `[1..N-1]` | Protocol-specific accounts (program, group, bank, reserves, etc.) |
+| `[N-1]` | Destination/source ATA (borrow/repay) |
+
+**Protocols:**
+
+| Protocol | Program ID | Discriminator |
+|----------|-----------|--------------|
+| Marginfi v2 | `MFv2hWfSl8SXyFSJtTn4eBjbZ3kYkG6KxJKsWmT1Qj9` | Anchor 8-byte (`sha256("global:<fn>")[..8]`) |
+| Save Finance | `So1endDq2YkqEjRh1dFGS7HVk25Ksfx4bNq3F7eG7Y` | Tag-based (1-byte opcode) |
+
+CPI is skipped when `remaining_accounts` is empty — existing deployments without CPI adapters continue to work unchanged.
 
 ### Accounts
 
@@ -352,7 +375,7 @@ Key environment variables (see `backend/.env`):
 ### 1. Clone and Install Dependencies
 
 ```bash
-git clone <repository-url> liilend
+git clone https://github.com/calebomondi/liilend.git
 cd liilend
 
 # Install Anchor program dependencies (handled by Anchor)
@@ -515,9 +538,19 @@ npx tsx -r dotenv/config scripts/check-supabase-schema.ts
 
 ```bash
 anchor test
-# 20 tests covering: init, configure, deposit, withdraw, borrow, repay,
-#                    liquidate, price feeds, authority transfer, edge cases
+# 22 Rust unit tests + Anchor integration tests covering: init, configure,
+# deposit, withdraw, borrow, repay, liquidate, price feeds, authority transfer,
+# edge cases, CPI discriminators, dispatch routing, instruction data construction
 ```
+
+**CPI unit tests** (`cargo test`):
+
+| Module | Tests | Coverage |
+|--------|-------|----------|
+| `marginfi_adapter.rs` | 6 | Discriminator verification, instruction data construction |
+| `save_adapter.rs` | 6 | Tag constants, instruction data construction |
+| `cpi/mod.rs` | 9 | Dispatch routing length checks for all 8 operation/protocol combos |
+| `state.rs` | 1 | Program ID validation |
 
 ### Devnet Integration Test
 
@@ -542,8 +575,10 @@ cd app && npm run build
 - PDA-based authority management (no private keys in contracts)
 - Two-step authority transfer (prevents accidental loss)
 - Pausable emergency controls via `set_paused`
-- Re-entrancy safe architecture (no external calls during state mutations)
-- CPI validation with account checks and seed verification
+- CPI calls use `invoke_signed` with PDA-derived seeds — no arbitrary signer delegation
+- CPI dispatch is isolated after token transfers (deposit) or before (withdraw) to minimize re-entrancy surface
+- Account validation via `require!` on `remaining_accounts` length before any CPI call
+- CPI errors are caught and mapped to protocol-level errors (no silent failures)
 - Overflow/underflow protection (SafeMath, checked arithmetic)
 - Stale price protection (60-second threshold rejects outdated feeds)
 - Liquidation threshold buffers (10% below external protocol limits)

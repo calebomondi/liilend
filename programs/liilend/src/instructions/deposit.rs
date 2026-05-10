@@ -3,6 +3,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use crate::state::*;
 use crate::errors::LiiLendError;
 use crate::utils::share_math::amount_to_shares;
+use crate::cpi::dispatch_deposit;
 
 #[derive(Accounts)]
 pub struct DepositCollateral<'info> {
@@ -57,6 +58,9 @@ pub fn handle_deposit(ctx: Context<DepositCollateral>, amount: u64) -> Result<()
     require!(amount > 0, LiiLendError::ZeroAmount);
     require!(!ctx.accounts.protocol_state.paused, LiiLendError::ProtocolPaused);
 
+    let asset_mint_key = ctx.accounts.asset_mint.key();
+    let vault_bump = ctx.accounts.vault.bump;
+
     let vault = &mut ctx.accounts.vault;
 
     let shares = amount_to_shares(amount, vault.total_shares, vault.total_value)
@@ -102,6 +106,16 @@ pub fn handle_deposit(ctx: Context<DepositCollateral>, amount: u64) -> Result<()
     protocol_state.total_deposits_usd = protocol_state
         .total_deposits_usd
         .saturating_add(amount as u128);
+
+    if !ctx.remaining_accounts.is_empty() {
+        dispatch_deposit(
+            amount,
+            vault,
+            vault_bump,
+            &asset_mint_key,
+            ctx.remaining_accounts,
+        )?;
+    }
 
     emit!(DepositEvent {
         user: ctx.accounts.authority.key(),

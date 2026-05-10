@@ -3,6 +3,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use crate::state::*;
 use crate::errors::LiiLendError;
 use crate::utils::share_math::debt_shares_to_amount;
+use crate::cpi::dispatch_repay;
 
 #[derive(Accounts)]
 pub struct RepayDebt<'info> {
@@ -55,19 +56,24 @@ pub fn handle_repay(ctx: Context<RepayDebt>, amount: u64) -> Result<()> {
     require!(amount > 0, LiiLendError::ZeroAmount);
     require!(!ctx.accounts.protocol_state.paused, LiiLendError::ProtocolPaused);
 
-    let protocol_state = &ctx.accounts.protocol_state;
+    let global_debt_shares = ctx.accounts.protocol_state.global_debt_shares;
+    let total_borrows_usd = ctx.accounts.protocol_state.total_borrows_usd;
+    let vault_bump = ctx.accounts.vault.bump;
+    let repay_mint_key = ctx.accounts.repay_mint.key();
+
+
     let borrow_position = &mut ctx.accounts.borrow_position;
 
     let debt_amount = debt_shares_to_amount(
         borrow_position.debt_shares,
-        protocol_state.global_debt_shares,
-        protocol_state.total_borrows_usd as u64,
+        global_debt_shares,
+        total_borrows_usd as u64,
     ).map_err(|_| LiiLendError::MathOverflow)?;
 
     require!(amount <= debt_amount, LiiLendError::RepaymentExceedsDebt);
 
     let repay_shares = if debt_amount > 0 {
-        (amount as u128 * protocol_state.global_debt_shares) / (debt_amount as u128)
+        (amount as u128 * global_debt_shares) / (debt_amount as u128)
     } else {
         0
     };
@@ -86,6 +92,17 @@ pub fn handle_repay(ctx: Context<RepayDebt>, amount: u64) -> Result<()> {
         amount,
     )?;
 
+    if !ctx.remaining_accounts.is_empty() {
+        dispatch_repay(
+            amount,
+            false,
+            &ctx.accounts.vault,
+            vault_bump,
+            &repay_mint_key,
+            ctx.remaining_accounts,
+        )?;
+    }
+
     borrow_position.debt_shares = borrow_position.debt_shares.saturating_sub(repay_shares);
 
     let protocol_state = &mut ctx.accounts.protocol_state;
@@ -97,7 +114,7 @@ pub fn handle_repay(ctx: Context<RepayDebt>, amount: u64) -> Result<()> {
 
     emit!(RepayEvent {
         user: ctx.accounts.authority.key(),
-        asset: ctx.accounts.repay_mint.key(),
+        asset: repay_mint_key,
         amount,
         debt_shares: repay_shares,
     });

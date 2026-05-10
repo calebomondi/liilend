@@ -3,6 +3,7 @@ use anchor_spl::token::{self, Mint, Token, TokenAccount, Transfer};
 use crate::state::*;
 use crate::errors::LiiLendError;
 use crate::utils::share_math::shares_to_amount;
+use crate::cpi::dispatch_withdraw;
 
 #[derive(Accounts)]
 pub struct WithdrawCollateral<'info> {
@@ -55,14 +56,18 @@ pub fn handle_withdraw(ctx: Context<WithdrawCollateral>, share_amount: u128) -> 
     require!(share_amount > 0, LiiLendError::ZeroAmount);
     require!(!ctx.accounts.protocol_state.paused, LiiLendError::ProtocolPaused);
 
+    let vault_bump = ctx.accounts.vault.bump;
+    let vault_total_shares = ctx.accounts.vault.total_shares;
+    let vault_total_value = ctx.accounts.vault.total_value;
+    let asset_mint_key = ctx.accounts.asset_mint.key();
+
     let user_collateral = &mut ctx.accounts.user_collateral;
     require!(
         user_collateral.shares >= share_amount,
         LiiLendError::InsufficientCollateral
     );
 
-    let vault_info = &ctx.accounts.vault;
-    let withdraw_amount = shares_to_amount(share_amount, vault_info.total_shares, vault_info.total_value)
+    let withdraw_amount = shares_to_amount(share_amount, vault_total_shares, vault_total_value)
         .map_err(|_| LiiLendError::ShareCalculationOverflow)?;
 
     user_collateral.shares = user_collateral.shares.saturating_sub(share_amount);
@@ -75,8 +80,17 @@ pub fn handle_withdraw(ctx: Context<WithdrawCollateral>, share_amount: u128) -> 
     user_account.collateral_shares = user_account.collateral_shares.saturating_sub(share_amount);
     user_account.last_interaction_ts = Clock::get()?.unix_timestamp;
 
-    let asset_mint_key = ctx.accounts.asset_mint.key();
-    let vault_bump = ctx.accounts.vault.bump;
+    if !ctx.remaining_accounts.is_empty() {
+        dispatch_withdraw(
+            withdraw_amount,
+            false,
+            vault,
+            vault_bump,
+            &asset_mint_key,
+            ctx.remaining_accounts,
+        )?;
+    }
+
     let seeds = &[VAULT_SEED, asset_mint_key.as_ref(), &[vault_bump]];
     let signer_seeds = &[&seeds[..]];
 
