@@ -13,7 +13,7 @@ import { Program, IdlAccounts, BN } from "@coral-xyz/anchor";
  * IDL can be found at `target/idl/liilend.json`.
  */
 export type Liilend = {
-  "address": "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v",
+  "address": "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc",
   "metadata": {
     "name": "liilend",
     "version": "0.1.0",
@@ -2822,7 +2822,7 @@ export type Liilend = {
 
 
 export const PROGRAM_ID = new PublicKey(
-  "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+  "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc"
 );
 
 export type ProtocolStateAccount = IdlAccounts<Liilend>["protocolState"];
