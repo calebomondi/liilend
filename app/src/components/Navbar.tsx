@@ -1,17 +1,12 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { WalletButton } from "./WalletButton";
 
 const NAV_ITEMS = [
-  { href: "/borrow", label: "Borrow" },
-  { href: "/portfolio", label: "Portfolio" },
+  { href: "/", label: "Dashboard" },
 ];
 
 export function Navbar() {
-  const pathname = usePathname();
-
   return (
     <nav className="fixed top-0 left-0 right-0 z-50 border-b border-surface-800 bg-surface-950/80 backdrop-blur-xl">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
@@ -20,36 +15,15 @@ export function Navbar() {
             <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-liilend-400 to-liilend-600 flex items-center justify-center">
               <span className="text-black font-bold text-sm">L</span>
             </div>
-            <span className="text-lg font-bold text-white">LiiLend</span>
+            <span className="text-lg font-bold text-white">Liidia</span>
           </Link>
-
-          <div className="hidden md:flex items-center gap-1">
-            {NAV_ITEMS.map((item) => (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-200 ${
-                  pathname === item.href
-                    ? "bg-liilend-500/10 text-liilend-400 border border-liilend-500/20"
-                    : "text-surface-400 hover:text-white hover:bg-surface-800/50"
-                }`}
-              >
-                {item.label}
-              </Link>
-            ))}
-          </div>
-
-          <div className="flex items-center gap-3">
-            <WalletButton />
-            <MobileMenu pathname={pathname} />
-          </div>
         </div>
       </div>
     </nav>
   );
 }
 
-function MobileMenu({ pathname }: { pathname: string }) {
+export function MobileMenu({ pathname }: { pathname: string }) {
   return (
     <div className="md:hidden">
       <details className="relative group">
