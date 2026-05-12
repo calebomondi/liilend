@@ -1,8 +1,6 @@
 pub mod marginfi_adapter;
-pub mod save_adapter;
 
 pub use marginfi_adapter::*;
-pub use save_adapter::*;
 
 use anchor_lang::prelude::*;
 use crate::state::{ProtocolIntegration, VaultAccount};
@@ -32,27 +30,6 @@ pub fn dispatch_deposit<'a>(
                 &remaining_accounts[5],
                 &remaining_accounts[6],
                 &remaining_accounts[7],
-            )
-        }
-        ProtocolIntegration::SaveFinance => {
-            require!(
-                remaining_accounts.len() >= 10,
-                crate::errors::LiiLendError::CPICallFailed
-            );
-            deposit_to_save(
-                amount,
-                &remaining_accounts[1],
-                &remaining_accounts[0],
-                vault_authority_bump,
-                vault_asset_mint,
-                &remaining_accounts[2],
-                &remaining_accounts[3],
-                &remaining_accounts[4],
-                &remaining_accounts[5],
-                &remaining_accounts[6],
-                &remaining_accounts[7],
-                &remaining_accounts[8],
-                &remaining_accounts[9],
             )
         }
     }
@@ -88,27 +65,6 @@ pub fn dispatch_withdraw<'a>(
                 &remaining_accounts[8],
             )
         }
-        ProtocolIntegration::SaveFinance => {
-            require!(
-                remaining_accounts.len() >= 10,
-                crate::errors::LiiLendError::CPICallFailed
-            );
-            withdraw_from_save(
-                amount,
-                &remaining_accounts[1],
-                &remaining_accounts[0],
-                vault_authority_bump,
-                vault_asset_mint,
-                &remaining_accounts[2],
-                &remaining_accounts[3],
-                &remaining_accounts[4],
-                &remaining_accounts[5],
-                &remaining_accounts[6],
-                &remaining_accounts[7],
-                &remaining_accounts[8],
-                &remaining_accounts[9],
-            )
-        }
     }
 }
 
@@ -140,27 +96,6 @@ pub fn dispatch_borrow<'a>(
                 &remaining_accounts[8],
             )
         }
-        ProtocolIntegration::SaveFinance => {
-            require!(
-                remaining_accounts.len() >= 10,
-                crate::errors::LiiLendError::CPICallFailed
-            );
-            borrow_from_save(
-                amount,
-                &remaining_accounts[1],
-                &remaining_accounts[0],
-                vault_authority_bump,
-                vault_asset_mint,
-                &remaining_accounts[2],
-                &remaining_accounts[3],
-                &remaining_accounts[4],
-                &remaining_accounts[5],
-                &remaining_accounts[6],
-                &remaining_accounts[7],
-                &remaining_accounts[8],
-                &remaining_accounts[9],
-            )
-        }
     }
 }
 
@@ -187,25 +122,6 @@ pub fn dispatch_repay<'a>(
                 &remaining_accounts[0],
                 vault_authority_bump,
                 vault_asset_mint,
-                &remaining_accounts[4],
-                &remaining_accounts[5],
-                &remaining_accounts[6],
-                &remaining_accounts[7],
-            )
-        }
-        ProtocolIntegration::SaveFinance => {
-            require!(
-                remaining_accounts.len() >= 8,
-                crate::errors::LiiLendError::CPICallFailed
-            );
-            repay_to_save(
-                amount,
-                &remaining_accounts[1],
-                &remaining_accounts[0],
-                vault_authority_bump,
-                vault_asset_mint,
-                &remaining_accounts[2],
-                &remaining_accounts[3],
                 &remaining_accounts[4],
                 &remaining_accounts[5],
                 &remaining_accounts[6],
@@ -266,25 +182,9 @@ mod tests {
     }
 
     #[test]
-    fn test_dispatch_deposit_save_requires_10() {
-        let vault = test_vault(ProtocolIntegration::SaveFinance);
-        let remaining = make_remaining_accounts(9);
-        let result = dispatch_deposit(100, &vault, 255, &Pubkey::new_unique(), &remaining);
-        assert!(result.is_err());
-    }
-
-    #[test]
     fn test_dispatch_withdraw_marginfi_requires_9() {
         let vault = test_vault(ProtocolIntegration::MarginFi);
         let remaining = make_remaining_accounts(8);
-        let result = dispatch_withdraw(100, false, &vault, 255, &Pubkey::new_unique(), &remaining);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_dispatch_withdraw_save_requires_10() {
-        let vault = test_vault(ProtocolIntegration::SaveFinance);
-        let remaining = make_remaining_accounts(9);
         let result = dispatch_withdraw(100, false, &vault, 255, &Pubkey::new_unique(), &remaining);
         assert!(result.is_err());
     }
@@ -298,24 +198,8 @@ mod tests {
     }
 
     #[test]
-    fn test_dispatch_borrow_save_requires_10() {
-        let vault = test_vault(ProtocolIntegration::SaveFinance);
-        let remaining = make_remaining_accounts(9);
-        let result = dispatch_borrow(100, &vault, 255, &Pubkey::new_unique(), &remaining);
-        assert!(result.is_err());
-    }
-
-    #[test]
     fn test_dispatch_repay_marginfi_requires_8() {
         let vault = test_vault(ProtocolIntegration::MarginFi);
-        let remaining = make_remaining_accounts(7);
-        let result = dispatch_repay(100, false, &vault, 255, &Pubkey::new_unique(), &remaining);
-        assert!(result.is_err());
-    }
-
-    #[test]
-    fn test_dispatch_repay_save_requires_8() {
-        let vault = test_vault(ProtocolIntegration::SaveFinance);
         let remaining = make_remaining_accounts(7);
         let result = dispatch_repay(100, false, &vault, 255, &Pubkey::new_unique(), &remaining);
         assert!(result.is_err());

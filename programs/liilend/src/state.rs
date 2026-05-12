@@ -26,7 +26,6 @@ pub enum AssetType {
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace)]
 pub enum ProtocolIntegration {
     MarginFi,
-    SaveFinance,
 }
 
 #[derive(AnchorSerialize, AnchorDeserialize, Clone, Copy, PartialEq, Eq, InitSpace)]
