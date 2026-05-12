@@ -26,7 +26,7 @@ services:
       NODE_ENV: ${NODE_ENV:-development}
       RPC_URL: ${RPC_URL:-https://api.devnet.solana.com}
       WS_URL: ${WS_URL:-wss://api.devnet.solana.com}
-      PROGRAM_ID: ${PROGRAM_ID:-LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v}
+      PROGRAM_ID: ${PROGRAM_ID:-BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc}
       BACKEND_PORT: 3001
       POSTGRES_HOST: postgres
       POSTGRES_PORT: 5432
@@ -61,7 +61,7 @@ services:
     environment:
       NODE_ENV: ${NODE_ENV:-development}
       NEXT_PUBLIC_RPC_URL: ${NEXT_PUBLIC_RPC_URL:-https://api.devnet.solana.com}
-      NEXT_PUBLIC_PROGRAM_ID: ${NEXT_PUBLIC_PROGRAM_ID:-LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v}
+      NEXT_PUBLIC_PROGRAM_ID: ${NEXT_PUBLIC_PROGRAM_ID:-BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc}
     depends_on:
       - backend
     logging: *default-logging

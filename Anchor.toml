@@ -6,13 +6,13 @@ seeds = false
 skip-lint = false
 
 [programs.devnet]
-liilend = "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+liilend = "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc"
 
 [programs.mainnet]
-liilend = "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+liilend = "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc"
 
 [programs.localnet]
-liilend = "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+liilend = "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc"
 
 [provider]
 cluster = "localnet"

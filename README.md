@@ -54,7 +54,7 @@ All addresses are on **Solana Devnet**.
 
 | Account | Address |
 |---------|---------|
-| Program ID | `LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v` |
+| Program ID | `BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc` |
 | ProtocolState PDA | `49znTcGkBaBtb2DT538sDXxGoqwECbTUR42w5N9AvJWy` |
 | Treasury | `zuqKDoMubUFxmHdRMd7sn8bqs8recHA14zd3ftjGqyM` |
 | Deployer Wallet | `BbK6G2WG2i8LVdMYwRrsT5aaB4QRuvBzdTrFYkQSd2CV` |
@@ -406,7 +406,7 @@ cd app
 cp .env.example .env.local
 # Edit .env.local with your RPC endpoint
 NEXT_PUBLIC_SOLANA_RPC_URL=https://api.devnet.solana.com
-NEXT_PUBLIC_PROGRAM_ID=LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v
+NEXT_PUBLIC_PROGRAM_ID=BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc
 ```
 
 **Backend** (`backend/.env`):
@@ -416,7 +416,7 @@ cd backend
 cp .env.example .env
 # Edit .env with your configuration
 SOLANA_RPC_URL=https://api.devnet.solana.com
-PROGRAM_ID=LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v
+PROGRAM_ID=BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc
 ```
 
 ### 4. Deploy to Devnet
