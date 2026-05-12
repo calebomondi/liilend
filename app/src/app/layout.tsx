@@ -10,7 +10,6 @@ import {
 } from "@solana/wallet-adapter-wallets";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "react-hot-toast";
-import { Navbar } from "@/components/Navbar";
 import { RPC_ENDPOINT } from "@/utils/constants";
 import "./globals.css";
 import "@solana/wallet-adapter-react-ui/styles.css";
@@ -46,8 +45,7 @@ export default function RootLayout({
           <WalletProvider wallets={wallets} autoConnect>
             <WalletModalProvider>
               <QueryClientProvider client={queryClient}>
-                <Navbar />
-                <main className="min-h-screen pt-16">{children}</main>
+                <main>{children}</main>
                 <Toaster
                   position="bottom-right"
                   toastOptions={{
