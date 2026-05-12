@@ -91,6 +91,16 @@ async function main(): Promise<void> {
   });
 }
 
+/* ─── Crash prevention ────────────────────────────────────── */
+
+process.on("uncaughtException", (err) => {
+  logger.error("Uncaught exception — preventing crash", { error: err, stack: err.stack });
+});
+
+process.on("unhandledRejection", (reason) => {
+  logger.error("Unhandled rejection — preventing crash", { error: reason });
+});
+
 /* ─── Graceful shutdown ───────────────────────────────────── */
 
 process.on("SIGTERM", async () => {
