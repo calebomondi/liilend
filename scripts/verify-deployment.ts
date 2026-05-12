@@ -269,7 +269,7 @@ async function main() {
   const provider = new AnchorProvider(connection, dummyWallet, {
     commitment: "confirmed",
   });
-  const program = new Program(idl, PROGRAM_ID, provider);
+  const program = new Program(idl, provider);
 
   // ── Run all checks ──────────────────────────────────────────────────────────
   const allChecks: CheckResult[] = [];
@@ -280,10 +280,10 @@ async function main() {
   const [treasuryPda] = findTreasuryPda();
 
   allChecks.push(
-    ...(await checkAccount(connection, "ProtocolState PDA", protocolPda))
+    await checkAccount(connection, "ProtocolState PDA", protocolPda)
   );
   allChecks.push(
-    ...(await checkAccount(connection, "Treasury PDA", treasuryPda))
+    await checkAccount(connection, "Treasury PDA", treasuryPda)
   );
   allChecks.push(...(await checkProtocolState(program, connection)));
   allChecks.push(...(await checkTreasury(program, connection)));
