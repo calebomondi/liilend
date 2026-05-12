@@ -46,7 +46,7 @@ router.get(
   "/protocol/stats",
   async (_req: Request, res: Response<ApiResponse>) => {
     try {
-      const conn = new Connection(config.solana.rpcUrl, "confirmed");
+      const conn = new Connection(config.solana.rpcUrl, { commitment: "confirmed", wsEndpoint: config.solana.wsUrl });
       const programId = new PublicKey(config.solana.programId);
       const protocolPda = derivePda([Buffer.from("liilend-protocol")]);
 
