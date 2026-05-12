@@ -9,7 +9,7 @@ pub mod cpi;
 use instructions::*;
 use state::{AssetType, OracleSource};
 
-declare_id!("LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v");
+declare_id!("BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc");
 
 #[program]
 pub mod liilend {
