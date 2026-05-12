@@ -2,7 +2,7 @@ import { PublicKey } from "@solana/web3.js";
 
 // ── Program ──────────────────────────────────────────────────────────────────
 export const PROGRAM_ID = new PublicKey(
-  "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v"
+  "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc"
 );
 
 // ── Cluster ──────────────────────────────────────────────────────────────────
