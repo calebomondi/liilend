@@ -6,7 +6,7 @@ import { AnchorProvider, Program } from "@coral-xyz/anchor";
 import { LIILEND_IDL } from "@/lib/idl";
 
 export type Liilend = {
-  "address": "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v",
+  "address": "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc",
   "metadata": {
     "name": "liilend",
     "version": "0.1.0",
