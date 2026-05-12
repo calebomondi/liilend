@@ -1,32 +1,19 @@
-import { AssetConfig, FiatCurrency } from "@/types";
-
-export const PROGRAM_ID = "LiiLryA3sZtz3Qeuo3YjZE5tdq4zK6zHMPpwfHNqB8v";
+export const PROGRAM_ID = "BrtmpQXVMryfdrtTQLxFaJtSTa78nULPuxJcQfFznpQc";
 
 export const RPC_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_RPC_URL ?? "https://api.devnet.solana.com";
 export const RPC_WS_ENDPOINT = process.env.NEXT_PUBLIC_SOLANA_WS_URL ?? "wss://api.devnet.solana.com";
 
-export const LIILEND_REFERRAL = "LiiLend";
-
-export const SUPPORTED_FIAT_CURRENCIES: {
-  code: FiatCurrency;
-  name: string;
+interface AssetConfig {
   symbol: string;
-  flag: string;
-}[] = [
-  { code: "KES", name: "Kenyan Shilling", symbol: "KSh", flag: "🇰🇪" },
-  { code: "NGN", name: "Nigerian Naira", symbol: "₦", flag: "🇳🇬" },
-  { code: "GHS", name: "Ghanaian Cedi", symbol: "GH₵", flag: "🇬🇭" },
-  { code: "ZAR", name: "South African Rand", symbol: "R", flag: "🇿🇦" },
-  { code: "USD", name: "US Dollar", symbol: "$", flag: "🇺🇸" },
-];
-
-export const FIAT_TO_USD_RATE: Record<FiatCurrency, number> = {
-  KES: 0.0077,
-  NGN: 0.00063,
-  GHS: 0.064,
-  ZAR: 0.052,
-  USD: 1.0,
-};
+  name: string;
+  mint: string;
+  decimals: number;
+  logo: string;
+  priceFeed: string;
+  ltv: number;
+  liquidationThreshold: number;
+  liquidationPenalty: number;
+}
 
 export const SUPPORTED_ASSETS: AssetConfig[] = [
   {
@@ -73,10 +60,22 @@ export const SUPPORTED_ASSETS: AssetConfig[] = [
     liquidationThreshold: 0.75,
     liquidationPenalty: 0.05,
   },
+  {
+    symbol: "jitoSOL",
+    name: "Jito Staked SOL",
+    mint: "H6khZJNhsAj3RNPrqUbVsYZUd2HFxeAQPrTXokuH57PZ",
+    decimals: 9,
+    logo: "",
+    priceFeed: "7LwM3FQ4KvSfakMRscKDN6FjYFyFJ3MgjPmSm3KeCqKJ",
+    ltv: 0.7,
+    liquidationThreshold: 0.75,
+    liquidationPenalty: 0.05,
+  },
 ];
 
 export const MOCK_PRICES: Record<string, number> = {
   SOL: 142.50,
+  jitoSOL: 147.00,
   USDC: 1.0,
   ETH: 3200.0,
   BTC: 65000.0,
