@@ -9,10 +9,13 @@ import {
   Keypair,
   PublicKey,
   Transaction,
+  SystemProgram,
+  LAMPORTS_PER_SOL,
   sendAndConfirmTransaction,
 } from "@solana/web3.js";
 import {
   createAssociatedTokenAccountIdempotentInstruction,
+  createSyncNativeInstruction,
   getOrCreateAssociatedTokenAccount,
   ASSOCIATED_TOKEN_PROGRAM_ID,
   TOKEN_PROGRAM_ID,
@@ -88,6 +91,7 @@ async function main() {
     { mint: TOKEN_MINTS.jitoSOL, label: "jitoSOL", decimals: 9 },
     { mint: TOKEN_MINTS.ETH, label: "ETH", decimals: 8 },
     { mint: TOKEN_MINTS.BTC, label: "BTC", decimals: 8 },
+    { mint: TOKEN_MINTS.SOL, label: "SOL", decimals: 9 },
   ];
 
   for (const asset of assets) {
@@ -128,6 +132,19 @@ async function main() {
         createAssociatedTokenAccountIdempotentInstruction(authority.publicKey, userAta, authority.publicKey, asset.mint),
       );
       await sendAndConfirmTransaction(connection, tx2, [authority], { skipPreflight: false });
+    }
+
+    const SOL_MINT = "So11111111111111111111111111111111111111112";
+    const isSol = asset.mint.toBase58() === SOL_MINT;
+
+    // For SOL, wrap into WSOL before depositing
+    if (isSol) {
+      const wrapTx = new Transaction().add(
+        SystemProgram.transfer({ fromPubkey: authority.publicKey, toPubkey: userAta, lamports: amountBase }),
+        createSyncNativeInstruction(userAta),
+      );
+      await sendAndConfirmTransaction(connection, wrapTx, [authority], { skipPreflight: false });
+      console.log(`    Wrapped ${amountBase / 10 ** asset.decimals} SOL → WSOL`);
     }
 
     const sig = await program.methods
