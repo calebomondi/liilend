@@ -26,7 +26,10 @@ export class IndexerService {
   private subscriptionId: number | null = null;
 
   constructor() {
-    this.connection = new Connection(config.solana.rpcUrl, "confirmed");
+    this.connection = new Connection(config.solana.rpcUrl, {
+      commitment: "confirmed",
+      wsEndpoint: config.solana.wsUrl,
+    });
     this.state = {
       lastProcessedSlot: 0,
       lastProcessedSignature: null,

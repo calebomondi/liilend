@@ -29,7 +29,10 @@ export class PortfolioService {
   private connection: Connection;
 
   constructor() {
-    this.connection = new Connection(config.solana.rpcUrl, "confirmed");
+    this.connection = new Connection(config.solana.rpcUrl, {
+      commitment: "confirmed",
+      wsEndpoint: config.solana.wsUrl,
+    });
   }
 
   async getPortfolio(address: string): Promise<PortfolioSummary> {

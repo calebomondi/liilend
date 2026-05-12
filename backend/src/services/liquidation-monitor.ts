@@ -26,7 +26,10 @@ export class LiquidationMonitor {
   private warnings: Map<string, LiquidationWarning> = new Map();
 
   constructor() {
-    this.connection = new Connection(config.solana.rpcUrl, "confirmed");
+    this.connection = new Connection(config.solana.rpcUrl, {
+      commitment: "confirmed",
+      wsEndpoint: config.solana.wsUrl,
+    });
   }
 
   start(): void {
@@ -125,12 +128,19 @@ export class LiquidationMonitor {
   private async fetchAllActivePositions(): Promise<UserPosition[]> {
     try {
       const programId = new PublicKey(config.solana.programId);
-      const accounts = await this.connection.getProgramAccounts(programId, {
-        commitment: "confirmed",
-      });
+      const [collAccounts, borrowAccounts] = await Promise.all([
+        this.connection.getProgramAccounts(programId, {
+          commitment: "confirmed",
+          filters: [{ dataSize: 97 }],
+        }),
+        this.connection.getProgramAccounts(programId, {
+          commitment: "confirmed",
+          filters: [{ dataSize: 105 }],
+        }),
+      ]);
 
       const positions: UserPosition[] = [];
-      for (const acc of accounts) {
+      for (const acc of [...collAccounts, ...borrowAccounts]) {
         const pos = this.tryDecodePosition(acc.account.data);
         if (pos) positions.push(pos);
       }
